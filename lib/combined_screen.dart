@@ -14,6 +14,7 @@ class CombinedScreen extends StatelessWidget {
             title: Text('서울시 시위 일정'),
             floating: true,
             snap: true,
+            // centerTitle: true,
           ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -27,29 +28,29 @@ class CombinedScreen extends StatelessWidget {
           ),
         ],
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: SizedBox(
-        width: 100,
-        height: 48,
-        child: FloatingActionButton.extended(
-          elevation: 4,
-          backgroundColor: Colors.blue,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          onPressed: () {
-            // 버튼 동작
-          },
-          label: const Text(
-            '전체',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ),
+      // floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      // floatingActionButton: SizedBox(
+      //   width: 100,
+      //   height: 48,
+      //   child: FloatingActionButton.extended(
+      //     elevation: 4,
+      //     backgroundColor: Colors.blue,
+      //     shape: RoundedRectangleBorder(
+      //       borderRadius: BorderRadius.circular(16),
+      //     ),
+      //     onPressed: () {
+      //       // 버튼 동작
+      //     },
+      //     label: const Text(
+      //       '전체',
+      //       style: TextStyle(
+      //         color: Colors.white,
+      //         fontSize: 16,
+      //         fontWeight: FontWeight.bold,
+      //       ),
+      //     ),
+      //   ),
+      // ),
     );
   }
 }

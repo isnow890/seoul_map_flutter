@@ -152,7 +152,7 @@ class _HorizontalTimeTableState extends State<HorizontalTimeTable> {
                       child: Row(
                         children: List.generate(totalHours, (index) {
                           final hour = startHour + index;
-                          final isCurrentHour = hour == DateTime.now().hour;
+                          final isCurrentHour = hour == koreanTime.hour;
 
                           return SizedBox(
                             width: hourWidth,
@@ -223,14 +223,13 @@ class _HorizontalTimeTableState extends State<HorizontalTimeTable> {
   }
 
   bool _isCurrentTimeVisible(int startHour, int endHour) {
-    final now = DateTime.now().hour;
+    final now = koreanTime.hour;
     return now >= startHour && now <= endHour;
   }
 
   Widget _buildCurrentTimeLine(int startHour) {
-    final now = DateTime.now();
     final minutesSinceStart =
-        ((now.hour - startHour) * 60 + now.minute).toDouble();
+        ((koreanTime.hour - startHour) * 60 + koreanTime.minute).toDouble();
     final position = minutesSinceStart * (hourWidth / 60);
 
     return Positioned(
@@ -278,44 +277,56 @@ class _HorizontalTimeTableState extends State<HorizontalTimeTable> {
 
       return Positioned(
         left: left,
-        top: row * 70.0, // 간격을 70으로 늘림
+        top: row * 70.0,
         width: width,
-        child: Container(
-          constraints: const BoxConstraints(
-            minHeight: 50, // 최소 높이 설정
-          ),
-          decoration: BoxDecoration(
-            color: protest.color,
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: Colors.blue.shade200),
-          ),
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min, // 내용에 맞게 크기 조정
-            children: [
-              Text(
-                protest.title,
-                style: TextStyle(
-                  color: Colors.blue.shade900,
-                  fontSize: 12,
+        child: GestureDetector(
+          onTap: () {
+            // 탭 이벤트 처리
+            _onProtestTapped(protest);
+          },
+          child: Container(
+            constraints: const BoxConstraints(
+              minHeight: 50,
+            ),
+            decoration: BoxDecoration(
+              color: protest.color,
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: Colors.blue.shade200),
+            ),
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  protest.title,
+                  style: TextStyle(
+                    color: Colors.blue.shade900,
+                    fontSize: 12,
+                  ),
+                  softWrap: true,
+                  maxLines: null,
                 ),
-                softWrap: true, // 텍스트 줄바꿈 허용
-                maxLines: null, // 최대 라인 수 제한 없음
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '${protest.startTime}-${protest.endTime}',
-                style: TextStyle(
-                  color: Colors.blue.shade900,
-                  fontSize: 10,
+                const SizedBox(height: 4),
+                Text(
+                  '${protest.startTime}-${protest.endTime}',
+                  style: TextStyle(
+                    color: Colors.blue.shade900,
+                    fontSize: 10,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       );
     }).toList();
+  }
+
+  void _onProtestTapped(Protest protest) {
+    // 탭된 항목의 세부 정보를 표시하거나 다른 동작 수행
+    print('Tapped protest: ${protest.title}');
+    // TODO: 세부 정보 화면으로 이동하는 등의 동작 구현
   }
 
   double _timeToMinutes(String time, int startHour) {
