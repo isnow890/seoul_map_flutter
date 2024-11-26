@@ -166,121 +166,111 @@ class _SeoulMapState extends State<SeoulMap> {
 
     final features = geoJsonData!['features'] as List;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('서울시 자치구 지도'),
-      ),
-      body:
+    return
 
-          // Row(
-          //   children: [
-          //     Container(
-          //       width: 150,
-          //       color: Colors.grey[200],
-          //       child: ListView.builder(
-          //         itemCount: getDistrictNames().length,
-          //         itemBuilder: (context, index) {
-          //           final district = getDistrictNames()[index];
-          //           return ListTile(
-          //             title: Text(district),
-          //             selected: selectedDistrict == district,
-          //             onTap: () {
-          //               setState(() {
-          //                 print('눌림 : $district');
-          //                 selectedDistrict = district;
-          //               });
-          //             },
-          //           );
-          //         },
-          //       ),
-          //     ),
-          // Expanded(
-          // child:
+        // Row(
+        //   children: [
+        //     Container(
+        //       width: 150,
+        //       color: Colors.grey[200],
+        //       child: ListView.builder(
+        //         itemCount: getDistrictNames().length,
+        //         itemBuilder: (context, index) {
+        //           final district = getDistrictNames()[index];
+        //           return ListTile(
+        //             title: Text(district),
+        //             selected: selectedDistrict == district,
+        //             onTap: () {
+        //               setState(() {
+        //                 print('눌림 : $district');
+        //                 selectedDistrict = district;
+        //               });
+        //             },
+        //           );
+        //         },
+        //       ),
+        //     ),
+        // Expanded(
+        // child:
 
-          SizedBox(
-        height: MediaQuery.of(context).size.height * 0.65,
-        width: MediaQuery.of(context).size.width,
-        child: FlutterMap(
-          options: MapOptions(
-            center: const LatLng(37.5665, 126.9780),
-            zoom: 10.35,
-            interactiveFlags: InteractiveFlag.none,
-            onTap: (tapPosition, point) {
-              for (var feature in features) {
-                final coordinates =
-                    feature['geometry']['coordinates'][0] as List;
-                final name = feature['properties']['SIG_KOR_NM'] as String;
-                final points = _convertCoordinates(coordinates);
+        SizedBox(
+      height: MediaQuery.of(context).size.height * 0.65,
+      width: MediaQuery.of(context).size.width,
+      child: FlutterMap(
+        options: MapOptions(
+          center: const LatLng(37.5665, 126.9780),
+          zoom: 10.30,
+          interactiveFlags: InteractiveFlag.none,
+          onTap: (tapPosition, point) {
+            for (var feature in features) {
+              final coordinates = feature['geometry']['coordinates'][0] as List;
+              final name = feature['properties']['SIG_KOR_NM'] as String;
+              final points = _convertCoordinates(coordinates);
 
-                if (_isPointInPolygon(point, points)) {
-                  setState(() {
-                    selectedDistrict = name;
-                    print('Selected district: $selectedDistrict'); // 선택된 구 출력
-                  });
-                  break;
-                }
+              if (_isPointInPolygon(point, points)) {
+                setState(() {
+                  selectedDistrict = name;
+                  print('Selected district: $selectedDistrict'); // 선택된 구 출력
+                });
+                break;
               }
-            },
-          ),
-          children: [
-            PolygonLayer(
-              polygons: features.map<Polygon>((feature) {
-                final coordinates =
-                    feature['geometry']['coordinates'][0] as List;
-                final name = feature['properties']['SIG_KOR_NM'] as String;
-                final points = _convertCoordinates(coordinates);
-
-                final isSelected = selectedDistrict == name;
-
-                return Polygon(
-                  isFilled: true,
-                  points: points,
-                  // 배경색을 기본적으로 연한 회색으로 설정
-                  color: isSelected
-                      ? Colors.grey.withOpacity(0.3) // 선택됐을 때
-                      // : Colors.grey.shade200, // 기본 상태
-                      : Colors.white, // 기본 상태
-                  borderColor: Colors.black38,
-                  borderStrokeWidth: 1,
-                );
-              }).toList(),
-            ),
-            MarkerLayer(
-              markers: districtCenters.entries.map((entry) {
-                return Marker(
-                  point: entry.value,
-                  width: 100,
-                  height: 40,
-                  builder: (context) => Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      // color: selectedDistrict == entry.key
-                      //     ? Colors.blue.withOpacity(0.2)
-                      //     : Colors.transparent,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      entry.key == "중구"
-                          ? entry.key
-                          : entry.key.substring(0, entry.key.length - 1),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: selectedDistrict == entry.key
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
+            }
+          },
         ),
+        children: [
+          PolygonLayer(
+            polygons: features.map<Polygon>((feature) {
+              final coordinates = feature['geometry']['coordinates'][0] as List;
+              final name = feature['properties']['SIG_KOR_NM'] as String;
+              final points = _convertCoordinates(coordinates);
+
+              final isSelected = selectedDistrict == name;
+
+              return Polygon(
+                isFilled: true,
+                points: points,
+                // 배경색을 기본적으로 연한 회색으로 설정
+                color: isSelected
+                    ? Colors.grey.withOpacity(0.3) // 선택됐을 때
+                    // : Colors.grey.shade200, // 기본 상태
+                    : Colors.white, // 기본 상태
+                borderColor: Colors.black38,
+                borderStrokeWidth: 1,
+              );
+            }).toList(),
+          ),
+          MarkerLayer(
+            markers: districtCenters.entries.map((entry) {
+              return Marker(
+                point: entry.value,
+                width: 100,
+                height: 40,
+                builder: (context) => Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    // color: selectedDistrict == entry.key
+                    //     ? Colors.blue.withOpacity(0.2)
+                    //     : Colors.transparent,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    entry.key == "중구"
+                        ? entry.key
+                        : entry.key.substring(0, entry.key.length - 1),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: selectedDistrict == entry.key
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
       ),
-      //     ),
-      //   ],
-      // ),
     );
   }
 

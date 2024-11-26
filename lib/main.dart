@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:seoul_map_flutter/combined_screen.dart';
 import 'package:seoul_map_flutter/time_table.dart';
 import 'seoul_map.dart';
 
@@ -23,6 +24,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => const MainNavi(),
         '/seoul': (context) => const SeoulMap(),
         '/time': (context) => ProtestInfoScreen(),
+        '/combined': (context) => const CombinedScreen()
       },
     );
   }
@@ -53,6 +55,15 @@ class MainNavi extends StatelessWidget {
                 Navigator.pushNamed(context, '/time');
               },
               child: const Text('time_table'),
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/combined');
+              },
+              child: const Text('combined'),
             ),
           ],
         ),

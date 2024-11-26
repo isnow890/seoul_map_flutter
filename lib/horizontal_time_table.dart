@@ -20,33 +20,14 @@ class _HorizontalTimeTableState extends State<HorizontalTimeTable> {
   final ScrollController _timelineScrollController = ScrollController();
 
   static const double hourWidth = 120.0;
-
-  // 시간 범위 계산
-  (int, int) _calculateTimeRange() {
-    int minHour = 24;
-    int maxHour = 0;
-
-    for (var protest in widget.protests) {
-      final startHour = int.parse(protest.startTime.split(':')[0]);
-      final endHour = int.parse(protest.endTime.split(':')[0]);
-      // 종료 시간이 정각이 아닌 경우를 위해 1시간 추가
-      final endHourAdjusted =
-          int.parse(protest.endTime.split(':')[1]) > 0 ? endHour + 1 : endHour;
-
-      minHour = min(minHour, startHour);
-      maxHour = max(maxHour, endHourAdjusted);
-    }
-
-    // 앞뒤로 1시간씩 여유 추가
-    minHour = max(0, minHour - 1);
-    maxHour = min(24, maxHour + 1);
-
-    return (minHour, maxHour);
-  }
-
+  static const double headerHeight = 50.0;
+  static const double rowHeight = 70.0;
+  static const double minContainerHeight = 50.0;
   @override
   void initState() {
     super.initState();
+
+    // 스크롤 동기화
     _headerScrollController.addListener(() {
       if (_headerScrollController.offset != _timelineScrollController.offset) {
         _timelineScrollController.jumpTo(_headerScrollController.offset);
@@ -58,6 +39,76 @@ class _HorizontalTimeTableState extends State<HorizontalTimeTable> {
         _headerScrollController.jumpTo(_timelineScrollController.offset);
       }
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // BuildContext가 준비된 후 스크롤 위치 설정
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToCurrentTime();
+    });
+  }
+
+  DateTime get koreanTime {
+    // 한국 시간 (UTC+9) 구하기
+    final now = DateTime.now();
+    final utcPlus9 = now.toUtc().add(const Duration(hours: 9));
+    return utcPlus9;
+  }
+
+  void _scrollToCurrentTime() {
+    if (!mounted) return;
+
+    final timeRange = _calculateTimeRange();
+    final startHour = timeRange.$1;
+    final now = koreanTime; // 한국 시간 사용
+
+    // 현재 시간까지의 픽셀 위치 계산
+    final currentHour = now.hour;
+    final currentMinute = now.minute;
+
+    print('Current time: $currentHour:$currentMinute'); // 디버깅용
+    print('Start hour: $startHour'); // 디버깅용
+
+    final scrollPosition = ((currentHour - startHour) * hourWidth +
+            (currentMinute / 60.0 * hourWidth))
+        .toDouble();
+
+    final screenWidth = MediaQuery.of(context).size.width - 20.0;
+    final targetScrollPosition = max(0.0, scrollPosition - (screenWidth / 2));
+
+    print('Target scroll position: $targetScrollPosition'); // 디버깅용
+
+    // 스크롤 컨트롤러가 부착되어 있는지 확인
+    if (_headerScrollController.hasClients) {
+      _headerScrollController.animateTo(
+        targetScrollPosition,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  // 시간 범위 계산
+  (int, int) _calculateTimeRange() {
+    int minHour = 24;
+    int maxHour = 0;
+
+    for (var protest in widget.protests) {
+      final startHour = int.parse(protest.startTime.split(':')[0]);
+      final endHour = int.parse(protest.endTime.split(':')[0]);
+      final endHourAdjusted =
+          int.parse(protest.endTime.split(':')[1]) > 0 ? endHour + 1 : endHour;
+
+      minHour = min(minHour, startHour);
+      maxHour = max(maxHour, endHourAdjusted);
+    }
+
+    minHour = max(0, minHour - 1);
+    maxHour = min(24, maxHour + 1);
+
+    return (minHour, maxHour);
   }
 
   @override
@@ -79,7 +130,7 @@ class _HorizontalTimeTableState extends State<HorizontalTimeTable> {
     final maxRow = protestsWithRow.map((p) => p.$2).reduce(max) + 1;
 
     return SizedBox(
-      height: 50 + (maxRow * 60),
+      height: 200 + (maxRow * 60),
       child: Column(
         children: [
           // 상단 시간 눈금
@@ -90,9 +141,7 @@ class _HorizontalTimeTableState extends State<HorizontalTimeTable> {
             ),
             child: Row(
               children: [
-                // 왼쪽 여백
-                const SizedBox(width: 10),
-                // 스크롤 가능한 시간대
+                // const SizedBox(width: 10),
                 Expanded(
                   child: SingleChildScrollView(
                     controller: _headerScrollController,
@@ -100,22 +149,39 @@ class _HorizontalTimeTableState extends State<HorizontalTimeTable> {
                     physics: const ClampingScrollPhysics(),
                     child: SizedBox(
                       width: totalWidth,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: totalHours,
-                        itemBuilder: (context, index) {
+                      child: Row(
+                        children: List.generate(totalHours, (index) {
                           final hour = startHour + index;
+                          final isCurrentHour = hour == DateTime.now().hour;
+
                           return SizedBox(
                             width: hourWidth,
-                            child: Center(
+                            child: Container(
+                              padding: const EdgeInsets.only(left: 8),
+                              alignment: Alignment.centerLeft,
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  right: BorderSide(
+                                    color: Colors.grey.shade300,
+                                    width: 1,
+                                  ),
+                                ),
+                                color: isCurrentHour
+                                    ? Colors.blue.withOpacity(0.1)
+                                    : null,
+                              ),
                               child: Text(
                                 '${hour.toString().padLeft(2, '0')}:00',
-                                style: const TextStyle(fontSize: 12),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: isCurrentHour
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
                               ),
                             ),
                           );
-                        },
+                        }),
                       ),
                     ),
                   ),
@@ -128,7 +194,7 @@ class _HorizontalTimeTableState extends State<HorizontalTimeTable> {
           Expanded(
             child: Row(
               children: [
-                const SizedBox(width: 10),
+                // const SizedBox(width: 10),
                 Expanded(
                   child: SingleChildScrollView(
                     controller: _timelineScrollController,
@@ -140,6 +206,8 @@ class _HorizontalTimeTableState extends State<HorizontalTimeTable> {
                         clipBehavior: Clip.none,
                         children: [
                           _buildGridLines(totalHours),
+                          if (_isCurrentTimeVisible(startHour, endHour))
+                            _buildCurrentTimeLine(startHour),
                           ..._buildProtestBlocks(protestsWithRow, startHour),
                         ],
                       ),
@@ -150,6 +218,28 @@ class _HorizontalTimeTableState extends State<HorizontalTimeTable> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  bool _isCurrentTimeVisible(int startHour, int endHour) {
+    final now = DateTime.now().hour;
+    return now >= startHour && now <= endHour;
+  }
+
+  Widget _buildCurrentTimeLine(int startHour) {
+    final now = DateTime.now();
+    final minutesSinceStart =
+        ((now.hour - startHour) * 60 + now.minute).toDouble();
+    final position = minutesSinceStart * (hourWidth / 60);
+
+    return Positioned(
+      left: position,
+      top: 0,
+      bottom: 0,
+      child: Container(
+        width: 2,
+        color: Colors.red.withOpacity(0.5),
       ),
     );
   }

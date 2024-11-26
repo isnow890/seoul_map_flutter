@@ -41,6 +41,24 @@ class ProtestInfoScreen extends StatelessWidget {
       color: Colors.blue[100]!,
     ),
     Protest(
+      title: 'test test!!!!!',
+      startTime: '11:00',
+      endTime: '12:30',
+      color: Colors.blue[100]!,
+    ),
+    Protest(
+      title: 'test test!!!!!',
+      startTime: '11:00',
+      endTime: '12:30',
+      color: Colors.blue[100]!,
+    ),
+    Protest(
+      title: 'test test!!!!!',
+      startTime: '11:00',
+      endTime: '12:30',
+      color: Colors.blue[100]!,
+    ),
+    Protest(
       title: '서울역 4出→CJ대한통운',
       startTime: '13:00',
       endTime: '16:00',
@@ -61,58 +79,11 @@ class ProtestInfoScreen extends StatelessWidget {
   ];
 
   ProtestInfoScreen({super.key});
-
   @override
   Widget build(BuildContext context) {
-    // CalendarEventData 리스트로 변환
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('서울시 시위 일정')),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // 기존의 지도, 달력, 드롭다운 위젯들...
-
-          // DayView 위젯으로 타임테이블 표시
-          Expanded(child: HorizontalTimeTable(protests: protests)),
-
-          // Expanded(
-          //   child: DayView(
-          //     controller: EventController()..addAll(events),
-          //     startHour: 9,
-          //     endHour: 18,
-          //     showVerticalLine: true,
-          //     timeLineWidth: 60,
-          //     timeLineBuilder: (date) {
-          //       return Container(
-          //         padding: const EdgeInsets.all(8),
-          //         child: Text(
-          //           '${date.hour.toString().padLeft(2, '0')}:00',
-          //           style: const TextStyle(fontSize: 14),
-          //         ),
-          //       );
-          //     },
-          //     eventTileBuilder: (date, events, boundary, start, end) {
-          //       return Container(
-          //         decoration: BoxDecoration(
-          //           color: events[0].color,
-          //           borderRadius: BorderRadius.circular(4),
-          //         ),
-          //         padding: const EdgeInsets.all(8),
-          //         child: Text(
-          //           events[0].title,
-          //           style: const TextStyle(
-          //             color: Colors.white,
-          //             fontSize: 14,
-          //           ),
-          //           overflow: TextOverflow.ellipsis,
-          //         ),
-          //       );
-          //     },
-          //   ),
-          // ),
-        ],
-      ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: HorizontalTimeTable(protests: protests),
     );
   }
 
