@@ -33,6 +33,13 @@ Deno.serve(async (req) => {
 
       // 생성 (Create)
       case "POST": {
+        
+        const contentType = req.headers.get('content-type')||"";
+        if (contentType.includes('multipart/form-data'))
+        {
+          return await uploadImage(supabaseClient, req);
+        }
+
         const body = await req.json();
         return await insertProtest(supabaseClient, body);
       }
@@ -126,6 +133,72 @@ async function getProtests(supabase: any) {
       status: 200,
     },
   );
+}
+
+
+async function uploadImage(supabase: any, req:Request){
+
+  try {
+    const formData = await req.formData();
+    const file = formData.get("file");
+
+    if (!file)
+    {
+      throw new Error("No file uploaded");
+    }
+
+
+    if (!(file instanceof File))
+    {
+      throw new Error("Invalid file type");
+    }
+
+    if (!file.type.includes("jpeg") && !file.type.includes("jpg")) {
+      throw new Error("Only JPG/JPEG files are allowed");
+    }
+
+    // 파일 이름 생성 (타임스탬프-원본파일명.jpg)
+    const fileName = `${Date.now()}-${file.name}`;
+
+    // Storage에 업로드
+    const { data, error } = await supabase
+      .storage
+      .from("protest") // 여기에 실제 bucket 이름을 입력하세요
+      .upload(fileName, file, {
+        contentType: file.type,
+        cacheControl: "3600",
+        upsert: false
+      });
+
+    if (error) throw error;
+
+    // 업로드된 파일의 공개 URL 가져오기
+    const { data: { publicUrl } } = supabase
+      .storage
+      .from("protest")
+      .getPublicUrl(fileName);    
+
+
+    return new Response(
+          JSON.stringify({ 
+            fileName: fileName,
+            publicUrl: publicUrl 
+          }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          }
+        );
+
+  } catch (error) {
+     return new Response(
+      JSON.stringify({ error: error.message }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      }
+    );
+  }
 }
 
 async function insertProtest(
