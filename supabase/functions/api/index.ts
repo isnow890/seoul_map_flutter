@@ -33,10 +33,8 @@ Deno.serve(async (req) => {
 
       // 생성 (Create)
       case "POST": {
-        
-        const contentType = req.headers.get('content-type')||"";
-        if (contentType.includes('multipart/form-data'))
-        {
+        const contentType = req.headers.get("content-type") || "";
+        if (contentType.includes("multipart/form-data")) {
           return await uploadImage(supabaseClient, req);
         }
 
@@ -127,7 +125,7 @@ async function getProtests(supabase: any) {
   if (error) throw error;
 
   return new Response(
-    JSON.stringify({ data }),
+    JSON.stringify(data),
     {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
@@ -135,21 +133,16 @@ async function getProtests(supabase: any) {
   );
 }
 
-
-async function uploadImage(supabase: any, req:Request){
-
+async function uploadImage(supabase: any, req: Request) {
   try {
     const formData = await req.formData();
     const file = formData.get("file");
 
-    if (!file)
-    {
+    if (!file) {
       throw new Error("No file uploaded");
     }
 
-
-    if (!(file instanceof File))
-    {
+    if (!(file instanceof File)) {
       throw new Error("Invalid file type");
     }
 
@@ -167,7 +160,7 @@ async function uploadImage(supabase: any, req:Request){
       .upload(fileName, file, {
         contentType: file.type,
         cacheControl: "3600",
-        upsert: false
+        upsert: false,
       });
 
     if (error) throw error;
@@ -176,37 +169,35 @@ async function uploadImage(supabase: any, req:Request){
     const { data: { publicUrl } } = supabase
       .storage
       .from("protest")
-      .getPublicUrl(fileName);    
-
+      .getPublicUrl(fileName);
 
     return new Response(
-          JSON.stringify({ 
-            fileName: fileName,
-            publicUrl: publicUrl 
-          }),
-          {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-            status: 200,
-          }
-        );
-
+      JSON.stringify({
+        fileName: fileName,
+        publicUrl: publicUrl,
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      },
+    );
   } catch (error) {
-     return new Response(
+    return new Response(
       JSON.stringify({ error: error.message }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 400,
-      }
+      },
     );
   }
 }
-
 async function insertProtest(
   supabase: any,
   body: InsertProtestBody,
 ) {
   const { mainData, detailsData } = body;
 
+  // 기존 insert 로직
   const { data: mainInsert, error: mainError } = await supabase
     .from("protest_main")
     .insert(mainData)
@@ -221,20 +212,25 @@ async function insertProtest(
     seq: index + 1,
   }));
 
-  const { data: detailInsert, error: detailError } = await supabase
+  const { error: detailError } = await supabase
     .from("protest_detail")
-    .insert(detailsWithId)
-    .select();
+    .insert(detailsWithId);
 
   if (detailError) throw detailError;
 
+  // getProtests와 동일한 형식으로 새로 조회
+  const { data, error } = await supabase
+    .from("protest_main")
+    .select(`*,protest_detail(*)`)
+    .eq("protest_id", mainInsert.protest_id)
+    .single();
+
+  if (error) throw error;
+
   return new Response(
-    JSON.stringify({
-      main: mainInsert,
-      details: detailInsert,
-    }),
+    JSON.stringify(data),
     {
-      headers: { "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 201,
     },
   );

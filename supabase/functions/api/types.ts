@@ -2,9 +2,10 @@ interface InsertProtestBody {
   mainData: {
     started_at: string;
     protest_count: number;
-    scrap_no: number;
     storage_url: string;
-    post_url : string;
+    post_url: string;
+    board_id: number;
+    board_seq: number;
   };
   detailsData: Array<{
     start_time?: string;
